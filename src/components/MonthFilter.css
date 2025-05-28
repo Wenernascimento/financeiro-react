@@ -1,0 +1,13 @@
+.month-filter {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .month-filter select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+  }
+  

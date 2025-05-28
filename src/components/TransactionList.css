@@ -1,0 +1,78 @@
+/* Container e tabela */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.transaction-table th, .transaction-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e6ed;
+}
+
+.transaction-table th {
+  background: #f9f9f9;
+  font-weight: 600;
+}
+
+.transaction-table td {
+  color: #555;
+}
+
+.transaction-table tr:hover {
+  background: #f4f4f4;
+}
+
+/* Cores de tipo */
+.transaction-table td.entrada { color: #2e7d32; }
+.transaction-table td.saida { color: #c62828; }
+
+/* Ações */
+.actions button {
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.actions button:hover { background: #f0f0f0; }
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .transaction-table th, .transaction-table td { 
+    font-size: 0.85rem;
+  }
+}
+
+/* 🌙 Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .table-container {
+    background: #1e1e2f;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .transaction-table th {
+    background: #2c2c40;
+    color: #ccc;
+  }
+
+  .transaction-table td {
+    color: #ddd;
+  }
+
+  .transaction-table tr:hover {
+    background: #333;
+  }
+}
