@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+ import { useEffect, useState } from "react";
 import { Transaction } from "../types/Transaction";
 
 type Props = {
   onAdd: (transaction: Transaction) => void;
   editing: Transaction | null;
+  onCancelEdit?: () => void; // Nova prop para lidar com cancelamento
 };
 
-export function TransactionForm({ onAdd, editing }: Props) {
+export function TransactionForm({ onAdd, editing, onCancelEdit }: Props) {
   const [transaction, setTransaction] = useState<Transaction>({
     id: crypto.randomUUID(),
     description: "",
@@ -24,55 +25,49 @@ export function TransactionForm({ onAdd, editing }: Props) {
     if (editing) {
       setTransaction(editing);
     } else {
-      // Reseta para valores padrão quando não está editando
-      setTransaction({
-        id: crypto.randomUUID(),
-        description: "",
-        amount: 0,
-        date: "",
-        category: "",
-        type: "saida",
-        paymentMethod: "em aberto",
-        pago: false,
-        dataPagamento: ""
-      });
+      resetForm();
     }
   }, [editing]);
 
+  const resetForm = () => {
+    setTransaction({
+      id: crypto.randomUUID(),
+      description: "",
+      amount: 0,
+      date: "",
+      category: "",
+      type: "saida",
+      paymentMethod: "em aberto",
+      pago: false,
+      dataPagamento: ""
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mantém o ID original se estiver editando
-    const transactionToSave = editing 
-      ? transaction 
+
+    const transactionToSave = editing
+      ? transaction
       : { ...transaction, id: crypto.randomUUID() };
-    
+
     onAdd(transactionToSave);
-    
-    // Só reseta se não estiver editando
-    if (!editing) {
-      setTransaction({
-        id: crypto.randomUUID(),
-        description: "",
-        amount: 0,
-        date: "",
-        category: "",
-        type: "saida",
-        paymentMethod: "em aberto",
-        pago: false,
-        dataPagamento: ""
-      });
-    }
+
+    if (!editing) resetForm();
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`transaction-form ${editing ? 'editing-mode' : ''}`}>
+    <form
+      onSubmit={handleSubmit}
+      className={`transaction-form ${editing ? "editing-mode" : ""}`}
+    >
       <label>
         Descrição:
         <input
           type="text"
           value={transaction.description}
-          onChange={(e) => setTransaction({ ...transaction, description: e.target.value })}
+          onChange={(e) =>
+            setTransaction({ ...transaction, description: e.target.value })
+          }
           required
         />
       </label>
@@ -83,7 +78,12 @@ export function TransactionForm({ onAdd, editing }: Props) {
           type="number"
           step="0.01"
           value={transaction.amount || ""}
-          onChange={(e) => setTransaction({ ...transaction, amount: parseFloat(e.target.value) || 0 })}
+          onChange={(e) =>
+            setTransaction({
+              ...transaction,
+              amount: parseFloat(e.target.value) || 0
+            })
+          }
           required
         />
       </label>
@@ -93,7 +93,9 @@ export function TransactionForm({ onAdd, editing }: Props) {
         <input
           type="date"
           value={transaction.date}
-          onChange={(e) => setTransaction({ ...transaction, date: e.target.value })}
+          onChange={(e) =>
+            setTransaction({ ...transaction, date: e.target.value })
+          }
           required
         />
       </label>
@@ -103,7 +105,9 @@ export function TransactionForm({ onAdd, editing }: Props) {
         <input
           type="text"
           value={transaction.category}
-          onChange={(e) => setTransaction({ ...transaction, category: e.target.value })}
+          onChange={(e) =>
+            setTransaction({ ...transaction, category: e.target.value })
+          }
           required
         />
       </label>
@@ -112,7 +116,12 @@ export function TransactionForm({ onAdd, editing }: Props) {
         Tipo:
         <select
           value={transaction.type}
-          onChange={(e) => setTransaction({ ...transaction, type: e.target.value as "entrada" | "saida" })}
+          onChange={(e) =>
+            setTransaction({
+              ...transaction,
+              type: e.target.value as "entrada" | "saida"
+            })
+          }
           required
         >
           <option value="entrada">Receita</option>
@@ -125,7 +134,10 @@ export function TransactionForm({ onAdd, editing }: Props) {
         <select
           value={transaction.paymentMethod}
           onChange={(e) =>
-            setTransaction({ ...transaction, paymentMethod: e.target.value as Transaction["paymentMethod"] })
+            setTransaction({
+              ...transaction,
+              paymentMethod: e.target.value as Transaction["paymentMethod"]
+            })
           }
           required
         >
@@ -141,11 +153,11 @@ export function TransactionForm({ onAdd, editing }: Props) {
         <button type="submit" className="submit-btn">
           {editing ? "Salvar Alterações" : "Adicionar Transação"}
         </button>
-        
-        {editing && (
-          <button 
-            type="button" 
-            onClick={() => onAdd({...transaction, id: ""})} // Força cancelamento
+
+        {editing && onCancelEdit && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
             className="cancel-btn"
           >
             Cancelar

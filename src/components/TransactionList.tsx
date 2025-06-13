@@ -1,4 +1,4 @@
-import { Transaction } from "../types/Transaction";
+ import { Transaction } from "../types/Transaction";
 import { Pencil, Trash } from "lucide-react";
 import "./TransactionList.css";
 
@@ -10,26 +10,30 @@ type Props = {
   onDesfazerPagamento: (id: string) => void;
 };
 
-// Função para obter a data atual no fuso horário de Brasília
 const getBrazilianDate = (): Date => {
   const now = new Date();
-  // Ajuste para o fuso horário brasileiro (UTC-3)
-  const timezoneOffset = now.getTimezoneOffset() * 60000; // Offset em milissegundos
-  const brasilOffset = -3 * 60 * 60 * 1000; // UTC-3 em milissegundos
-  const brasilTime = new Date(now.getTime() + timezoneOffset + brasilOffset);
-  
-  // Zerar horas, minutos, segundos e milissegundos
-  brasilTime.setHours(0, 0, 0, 0);
-  return brasilTime;
+  now.setHours(0, 0, 0, 0);
+  return now;
 };
 
-// Função para formatar a data como YYYY-MM-DD
+// Função para criar Date no horário local, evitando erro de timezone
+function parseDateToLocal(dateString: string): Date {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 const formatDateToISOString = (date: Date): string => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const formatCurrency = (amount: number) =>
+  amount.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 
 const formatPaymentStatus = (transaction: Transaction): string => {
   if (transaction.type !== "saida") return "";
@@ -37,12 +41,9 @@ const formatPaymentStatus = (transaction: Transaction): string => {
   if (transaction.pago) {
     if (transaction.dataPagamento) {
       try {
-        // Parse da data no formato YYYY-MM-DD
-        const [year, month, day] = transaction.dataPagamento.split('-').map(Number);
-        const paymentDate = new Date(year, month - 1, day);
-        
+        const paymentDate = parseDateToLocal(transaction.dataPagamento);
         const today = getBrazilianDate();
-        
+
         if (paymentDate.toDateString() === today.toDateString()) {
           return `💸 Pago hoje (${paymentDate.toLocaleDateString("pt-BR")})`;
         }
@@ -57,10 +58,10 @@ const formatPaymentStatus = (transaction: Transaction): string => {
   if (!transaction.date) return "⚠️ Sem data";
 
   try {
+    console.log("transaction.date raw:", transaction.date);
     const today = getBrazilianDate();
-    const dueDate = new Date(transaction.date);
-    dueDate.setHours(0, 0, 0, 0);
-    
+    const dueDate = parseDateToLocal(transaction.date);
+
     const diffDays = Math.ceil(
       (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -69,8 +70,7 @@ const formatPaymentStatus = (transaction: Transaction): string => {
     if (diffDays === 0) return "🔴 Vence hoje";
     if (diffDays <= 5) return `🟠 Vence em ${diffDays} dias`;
     return `✅ Vence em ${diffDays} dias`;
-  } catch (error) {
-    console.error("Erro ao calcular status:", error);
+  } catch {
     return "⚠️ Erro no status";
   }
 };
@@ -83,15 +83,11 @@ export function TransactionList({
   onDesfazerPagamento,
 }: Props) {
   const handleAnteciparPagamento = (id: string) => {
-    const brazilDate = getBrazilianDate();
-    const dateString = formatDateToISOString(brazilDate);
-    
-    console.log("Data sendo enviada:", dateString, 
-                "Data objeto:", brazilDate.toString(),
-                "Data UTC:", brazilDate.toISOString());
-    
+    const dateString = formatDateToISOString(getBrazilianDate());
     onAnteciparPagamento(id, dateString);
   };
+
+  console.log("Renderizando TransactionList", transactions);
 
   return (
     <div className="table-container">
@@ -116,21 +112,17 @@ export function TransactionList({
             >
               <td>{transaction.description}</td>
               <td className={transaction.type === "entrada" ? "entrada" : "saida"}>
-                R$ {transaction.amount.toFixed(2)}
-                <span className="payment-method">
-                  ({transaction.paymentMethod})
-                </span>
+                {formatCurrency(transaction.amount)}
+                <span className="payment-method"> ({transaction.paymentMethod})</span>
               </td>
               <td>
                 {transaction.date
-                  ? new Date(transaction.date).toLocaleDateString("pt-BR")
+                  ? parseDateToLocal(transaction.date).toLocaleDateString("pt-BR")
                   : "-"}
               </td>
               <td>{transaction.category}</td>
               <td>{transaction.type === "entrada" ? "Receita" : "Despesa"}</td>
-              <td className="status-cell">
-                {formatPaymentStatus(transaction) || "-"}
-              </td>
+              <td className="status-cell">{formatPaymentStatus(transaction)}</td>
               <td className="actions">
                 <button
                   onClick={() => onEdit(transaction)}

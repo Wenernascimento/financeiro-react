@@ -8,6 +8,7 @@ import { Header } from "./components/Header";
 import { MonthlyComparisonTable } from "./components/MonthlyComparisonTable";
 import "./App.css";
 
+
 const STORAGE_VERSION = "finance_app_v3";
 
 // Função auxiliar para verificar o armazenamento
